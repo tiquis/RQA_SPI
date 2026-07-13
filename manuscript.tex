@@ -1,0 +1,492 @@
+%=================================================================
+% HOW TO USE THIS FILE
+%=================================================================
+% This file contains the manuscript CONTENT only. It is NOT a
+% compilable MDPI submission on its own: MDPI requires their own
+% class file (mdpi.cls) and a "Definitions/" folder (logos,
+% bibliography styles, journal-specific settings), which are NOT
+% reproduced here (they are MDPI's own files, not something to
+% copy from a third party -- download them fresh, official source
+% only, right before finalizing the submission, since MDPI updates
+% the template periodically).
+%
+% Steps to assemble the real submission:
+%   1. Go to https://www.mdpi.com/authors/latex and download the
+%      current template ZIP (choose the citation style your target
+%      journal uses -- ACS/numbered is the default for most
+%      MDPI science journals; APA/author-date for a shorter list,
+%      Climate uses NUMBERED citations (\cite), not author-date -- see
+%      note near \bibliography at the end of this file.
+%   2. Unzip it; you will get template.tex + a Definitions/ folder.
+%   3. Replace the placeholder journal name below
+%      (\documentclass[JOURNALNAME,article,submit,moreauthors]{Definitions/mdpi})
+%      with your target journal's exact string, copied from the
+%      comment block in MDPI's own template.tex (case-sensitive).
+%   4. Copy everything from \Title{...} down to \end{document} in
+%      THIS file into MDPI's template.tex, replacing their
+%      placeholder content.
+%   5. Copy references.bib into the same project folder.
+%=================================================================
+
+\documentclass[climate,article,submit,moreauthors]{Definitions/mdpi}
+% <-- Confirm 'climate' matches exactly the string in the current official
+%     template.tex comment block before compiling (case-sensitive). Chosen
+%     over Entropy and over Atmosphere (which already hosts the companion
+%     MF-DFA manuscript, so a different journal was preferred for this paper).
+
+%=================================================================
+% MDPI internal commands -- fill in once the target journal and
+% submission stage are decided; leave as-is for now.
+%=================================================================
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\datereceived{}
+\daterevised{}
+\dateaccepted{}
+\datepublished{}
+
+%=================================================================
+% TITLE -- placeholder, to be written last per the agreed workflow
+%=================================================================
+\Title{[TITLE PENDING]}
+
+%=================================================================
+% AUTHORS
+%=================================================================
+\TitleCitation{[Short title for citation -- PENDING]}
+\newcommand{\orcidauthorA}{0000-0000-0000-0000} % <-- fill in ORCID if available
+\Author{Rafael Magallanes-Quintanar $^{1,}$*}
+\AuthorNames{Rafael Magallanes-Quintanar}
+\AuthorCitation{Magallanes-Quintanar, R.}
+
+\address{%
+$^{1}$ \quad Unidad Acad\'emica de Ingenier\'ia El\'ectrica, Programa de Ingenier\'ia en Computaci\'on, Universidad Aut\'onoma de Zacatecas, Zacatecas, Mexico
+}
+
+\corres{Correspondence: [email] }
+
+%=================================================================
+% ABSTRACT AND KEYWORDS -- placeholders, written last
+%=================================================================
+\abstract{[ABSTRACT PENDING -- to be written after Discussion is finalized.]}
+
+\keyword{recurrence quantification analysis; cross recurrence plot; drought;
+Standardized Precipitation Index; nonlinear time series analysis; synchronization;
+Zacatecas; Mexico}
+
+%=================================================================
+\begin{document}
+
+% ================================================================
+\section{Introduction}
+\label{sec:introduction}
+[PENDING -- section to be drafted after Discussion.]
+
+% ================================================================
+\section{Materials and Methods}
+\label{sec:methods}
+
+\subsection{Study area and data}
+\label{sec:methods-data}
+
+The study area comprises the state of Zacatecas, north-central Mexico, partitioned
+into four physiographic regions (Semi-arid, Highlands, Mountains, Canyons) following
+the official regionalization established in the authors' related work on Multifractal
+Detrended Fluctuation Analysis (MF-DFA) of regional drought series
+\cite{MFDFAmanuscript}. This regionalization is based on 29--31 CONAGUA
+meteorological stations grouped by physiographic and hydroclimatic criteria, and was
+independently validated at the regional-aggregation level via bootstrap analysis of
+multifractal features in that companion study.
+
+The 12-month Standardized Precipitation Index (SPI-12) was computed for each region
+from monthly precipitation records spanning \textbf{December 1965 to December 2024
+(709 months)}. Station-level series were quality-controlled, gap-filled, and
+aggregated to the regional level using the same pipeline underlying the MF-DFA
+manuscript; full details of station selection, gamma-distribution fitting, and
+imputation are provided therein and are not repeated here. The four resulting
+regional SPI-12 series constitute the sole input to the analyses described below.
+
+\subsection{Phase-space reconstruction and embedding parameter selection}
+\label{sec:methods-embedding}
+
+Recurrence-based methods require reconstructing the system's phase space from a
+scalar time series via time-delay embedding \cite{Takens1981}. For a series
+$x(t)$, an embedded state vector is defined as
+
+\begin{equation}
+\vec{x}_i = \big(x(i),\, x(i+\tau),\, x(i+2\tau),\, \dots,\, x(i+(m-1)\tau)\big)
+\label{eq:embedding}
+\end{equation}
+
+where $\tau$ is the delay and $m$ is the embedding dimension.
+
+For each of the four regional series, $\tau$ was estimated as the first local
+minimum of the average mutual information (AMI) function, computed over lags
+1--24 months using a 16-bin two-dimensional histogram estimator. The embedding
+dimension $m$ was estimated via the false nearest neighbors (FNN) method
+\cite{Kennel1992}, selecting the smallest $m$ at which the percentage of false
+neighbors fell below 5\%, with standard thresholds $R_{tol}=15$, $A_{tol}=2$.
+Resulting parameters are reported in Section~\ref{sec:results-embedding}
+(Table~\ref{tab:embedding}).
+
+Because the sliding-window synchronization analysis
+(Section~\ref{sec:methods-sliding}) operates on much shorter sub-series
+(12--36 months) than the full 709-month series, applying the same, comparatively
+high-dimensional ($m\approx4$--5, $\tau\approx9$--11 months) embedding to short
+windows was found to leave zero usable embedded vectors in many windows
+($(m-1)\tau$ alone can consume 27--40 months). For that analysis only, a minimal
+fixed embedding ($m=2$, $\tau=1$) was used instead --
+see Section~\ref{sec:methods-sliding}.
+
+\subsection{Recurrence plots and RQA measures}
+\label{sec:methods-rqa}
+
+For each region, a recurrence plot (RP) was constructed from the embedded
+trajectory:
+
+\begin{equation}
+R_{i,j} = \Theta(\varepsilon - \lVert \vec{x}_i - \vec{x}_j \rVert)
+\label{eq:rp}
+\end{equation}
+
+where $\Theta$ is the Heaviside function, $\lVert \cdot \rVert$ is the Euclidean
+norm, and $\varepsilon$ is a distance threshold. Rather than fixing $\varepsilon$
+to an arbitrary value (e.g., a fixed multiple of the signal's standard
+deviation), $\varepsilon$ was selected independently for each region as the
+empirical percentile of the pairwise-distance distribution corresponding to a
+\textbf{target recurrence rate of RR = 5\%}, following standard recommendations
+\cite{Marwan2007} to keep RQA measures comparable across series with different
+amplitude scales.
+
+\textbf{Theiler window correction.} Points adjacent in time are trivially close
+in phase space whenever the underlying signal is smooth -- which SPI-12, as a
+12-month moving average, inherently is. Including such trivial,
+autocorrelation-driven matches inflates diagonal-line-based measures (see below)
+without reflecting genuine recurrence to a distinct past or future state
+\cite{Theiler1986}. To correct for this, a band of half-width $W$ around the
+main diagonal ($|i-j| < W$) was excluded from both the $\varepsilon$-calibration
+step and the final recurrence matrix. We set $W = \tau$ per region, using the
+decorrelation timescale already estimated in
+Section~\ref{sec:methods-embedding} as a principled, data-driven choice rather
+than an arbitrary one. All RQA measures reported in this manuscript use the
+Theiler-corrected recurrence matrices.
+
+From the corrected recurrence matrix, the following standard RQA measures
+\cite{Marwan2007} were computed from the distributions of diagonal and
+vertical line lengths (minimum line length = 2 for both):
+
+\begin{itemize}
+  \item \textbf{RR} (recurrence rate): density of recurrence points,
+  $RR = \frac{1}{N^*}\sum_{i,j} R_{i,j}$, where $N^*$ is the number of $(i,j)$
+  pairs outside the Theiler-excluded band.
+  \item \textbf{DET} (determinism): fraction of recurrence points forming
+  diagonal lines of length $\geq L_{min}$.
+  \item \textbf{L}: mean diagonal line length.
+  \item \textbf{Lmax}: length of the longest diagonal line.
+  \item \textbf{ENTR}: Shannon entropy of the diagonal line-length distribution.
+  \item \textbf{LAM} (laminarity): fraction of recurrence points forming
+  vertical lines of length $\geq V_{min}$ -- an operational measure of states
+  "trapped" in a regime.
+  \item \textbf{TT} (trapping time): mean vertical line length -- the typical
+  duration of a regime before transitioning.
+\end{itemize}
+
+\subsection{Cross-Recurrence and the F-synchronization measure}
+\label{sec:methods-crp}
+
+Following the approach of Semeraro et al. \cite{Semeraro2020}, pairwise synchronization between regions was
+assessed via the Cross Recurrence Plot (CRP):
+
+\begin{equation}
+C_{i,j} = \Theta(\varepsilon - \lVert \vec{x}_i - \vec{y}_j \rVert)
+\label{eq:crp}
+\end{equation}
+
+where $\vec{x}$ and $\vec{y}$ are the embedded trajectories of two different
+regional series, with $\varepsilon$ again calibrated to a target RR = 5\% for
+the pair. Synchronization was quantified with the \textbf{F-recurrence measure},
+the density of points along the CRP's main diagonal (the line of
+synchronization):
+
+\begin{equation}
+F = \frac{1}{N}\sum_i C_{i,i}
+\label{eq:frecurrence}
+\end{equation}
+
+$F=1$ indicates complete synchronization; $F \to 0$ indicates desynchronization.
+Unlike the single-region RQA measures in Section~\ref{sec:methods-rqa}, $F$ is
+computed only along matched time indices $(i,i)$, not across a range of
+offsets, and is therefore not subject to the Theiler-window artifact described
+above; no correction was applied to this measure.
+
+\subsection{Sliding-window synchronization around documented drought events}
+\label{sec:methods-sliding}
+
+To evaluate whether inter-regional synchronization changes around severe
+drought events, $F$ was recomputed in 12-month sliding windows (3-month step)
+within 36-month periods immediately before and after each of five
+independently documented drought years (1996, 2011, 2012, 2021, 2023; sources
+and event-specific context in Table~\ref{tab:droughtevents}). Because these
+short windows are incompatible with the full-series embedding parameters
+(Section~\ref{sec:methods-embedding}), a fixed minimal embedding ($m=2$,
+$\tau=1$) was used for this analysis only. Windows yielding fewer than 5
+embedded vectors were skipped (this occurred systematically for the 2023
+event, for which the series' end date, December 2024, allows only 12 of the
+intended 36 post-event months).
+
+For each region pair and event with $\geq 2$ valid windows on both sides, the
+pre/post distributions of $F$ were compared with Levene's test (variance
+homogeneity) and Welch's $t$-test (difference of means, unequal variances).
+Drought years were selected from independently documented sources (national
+CONAGUA/SMN records and, where available, Zacatecas-specific peer-reviewed
+literature and direct grower testimony; see Table~\ref{tab:droughtevents}),
+not chosen post hoc from the data.
+
+\subsection{Multiple-comparison correction}
+\label{sec:methods-mcc}
+
+The sliding-window analysis (Section~\ref{sec:methods-sliding}) produces one
+test per region pair per event (up to 6 pairs $\times$ 5 events = 30 tests,
+reduced to 24 valid tests after excluding windows with insufficient data). At
+$\alpha=0.05$, roughly one false positive is expected by chance alone across
+this many tests. Both a conservative Bonferroni correction and the less
+conservative Benjamini-Hochberg false discovery rate (FDR) procedure were
+applied to the resulting $p$-values. One region pair-event
+(Semi-arid--Highlands, 2021) was treated as a pre-specified, confirmatory test
+rather than an exploratory one, since independent field evidence (grower
+testimony) identified 2021 as a Highlands-concentrated event \textit{prior to}
+running the analysis; for this test, the FDR-corrected result (not Bonferroni)
+is considered the appropriate significance criterion (see
+Section~\ref{sec:results-sliding} and Discussion).
+
+\subsection{Software and reproducibility}
+\label{sec:methods-software}
+
+All analyses were implemented in Python (NumPy, SciPy, pandas) in a Google
+Colab notebook, using a custom implementation of RQA rather than third-party
+RQA packages, for full transparency and auditability of every computational
+step (embedding, threshold calibration, Theiler-window exclusion, and
+line-length extraction). The complete notebook, including the data-loading,
+verification, and all diagnostic checks described in
+Section~\ref{sec:results}, is provided as supplementary material and archived
+on GitHub [\textbf{PENDING: repository URL / DOI}].
+
+% ================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Embedding parameter selection}
+\label{sec:results-embedding}
+
+For each of the four regional series of SPI-12 (Semi-arid, Highlands,
+Mountains, Canyons; 709 months, December 1965--December 2024), the embedding
+delay ($\tau$) and dimension ($m$) were estimated as described in
+Section~\ref{sec:methods-embedding} (Table~\ref{tab:embedding}).
+
+\begin{table}[H]
+\caption{Embedding parameters per region.}
+\label{tab:embedding}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\begin{tabularx}{\linewidth}{lCC}
+\toprule
+\textbf{Region} & \boldmath{$\tau$} & \boldmath{$m$} \\
+\midrule
+Semi-arid & 9  & 5 \\
+Highlands & 11 & 4 \\
+Mountains & 10 & 5 \\
+Canyons   & 11 & 5 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The obtained $\tau$ values (9--11 months) are consistent with the seasonal
+periodicity inherent to SPI-12 as a 12-month moving window. The embedding
+dimension resulted between 4 and 5 across the four regions, with Highlands as
+the only region with $m=4$ instead of $m=5$.
+
+\subsection{Regional RQA measures}
+\label{sec:results-rqa}
+
+With the recurrence threshold fixed to achieve a constant recurrence rate
+(RR$\approx$0.05) across the four regions, and after excluding a Theiler
+window of width $W=\tau$ (per region) around the main diagonal to remove
+trivial autocorrelation-driven recurrence \cite{Theiler1986,Marwan2007},
+standard RQA measures were computed (Table~\ref{tab:rqa}).
+
+\begin{table}[H]
+\caption{RQA measures per region (Theiler-corrected).}
+\label{tab:rqa}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\begin{tabularx}{\linewidth}{lCCCCCCC}
+\toprule
+\textbf{Region} & \textbf{RR} & \textbf{DET} & \textbf{L} & \textbf{Lmax} & \textbf{ENTR} & \textbf{LAM} & \textbf{TT} \\
+\midrule
+Semi-arid & 0.050 & 0.376 & 3.346 & 21 & 1.582 & 0.854 & 4.220 \\
+Highlands & 0.050 & 0.380 & 3.328 & 21 & 1.582 & 0.864 & 4.458 \\
+Mountains & 0.050 & 0.374 & 3.209 & 21 & 1.515 & 0.849 & 4.188 \\
+Canyons   & 0.050 & 0.382 & 3.708 & 30 & 1.751 & 0.863 & 4.895 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textit{Methodological note (Theiler window):} an initial run without
+excluding the near-diagonal band produced Lmax values of 143--343 months,
+driven in the most extreme case (Mountains) entirely by an offset-1 diagonal
+-- i.e., consecutive months trivially resembling each other due to the
+smoothness of SPI-12 as a 12-month moving average, not genuine recurrence to
+a distinct past state. Following the standard correction of
+Theiler \cite{Theiler1986}, a band of width $W=\tau$ was excluded from all RQA
+computations; Table~\ref{tab:rqa} reflects the corrected values used
+throughout this manuscript.
+
+Canyons presents the highest values of DET, L, Lmax, ENTR, LAM, and TT among
+the four regions -- this ranking is unchanged by the Theiler-window
+correction, indicating it is a robust feature of the data rather than an
+artifact of the near-diagonal band. Differences between regions remain modest
+in absolute terms (e.g., LAM between 0.849 and 0.864), consistent with shared
+regional climatic forcings across all four regions.
+
+\textit{Verification of Lmax (Mountains):} the longest diagonal line
+(length = 21 months) after correction links two temporally distant wet
+episodes -- July 1985--March 1987 and March 2002--November 2003, offset by
+200 months ($\approx$16.7 years) -- both with positive mean SPI-12 (0.30 and
+0.36, respectively) and healthy within-segment variability (std 0.63 and
+0.39; 21/21 unique values in both segments, ruling out a data artifact). A
+direct Pearson correlation between the two segments (aligned by relative
+month) confirms a moderate-to-strong positive relationship ($r=0.53$),
+consistent with genuine recurrence between two similar wet regimes rather
+than a methodological artifact.
+
+\subsection{Synchronization between regions (Cross-Recurrence)}
+\label{sec:results-crp}
+
+The F-synchronization measure (density of the identity line in the Cross
+Recurrence Plot; \cite{Semeraro2020}) was computed for the six pairwise
+region combinations (Table~\ref{tab:frecurrence}).
+
+\begin{table}[H]
+\caption{Pairwise F-recurrence (synchronization) between regions.}
+\label{tab:frecurrence}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\begin{tabularx}{0.6\linewidth}{lC}
+\toprule
+\textbf{Region pair} & \textbf{F} \\
+\midrule
+Semi-arid -- Highlands & \textbf{0.639} \\
+Highlands -- Mountains & 0.573 \\
+Semi-arid -- Mountains & 0.461 \\
+Mountains -- Canyons   & 0.460 \\
+Highlands -- Canyons   & 0.352 \\
+Semi-arid -- Canyons   & 0.287 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Semi-arid and Highlands constitute, by a clear margin, the most synchronized
+pair -- consistent with their geographic contiguity in the inter-range basin
+between the Sierra Madre Oriental and Occidental. Semi-arid and Canyons
+constitute the least synchronized pair, consistent with distinct orographic
+precipitation regimes between the two regions.
+
+\subsection{Synchronization before/after documented drought events}
+\label{sec:results-sliding}
+
+The change in the $F$ measure was evaluated before and after five
+independently documented drought events (Table~\ref{tab:droughtevents}), for
+the six region-pair combinations. Of the resulting 24 tests (2023 was
+excluded due to insufficient post-event data within the series range),
+correction for multiple comparisons was applied (Table~\ref{tab:sliding}).
+
+\begin{table}[H]
+\caption{Region pairs with statistically significant synchronization change around a drought event (after multiple-comparison correction).}
+\label{tab:sliding}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\begin{tabularx}{\linewidth}{lCCCCCC}
+\toprule
+\textbf{Pair} & \textbf{Event} & \textbf{F before} & \textbf{F after} & \boldmath{$p$} \textbf{(raw)} & \boldmath{$p$} \textbf{(Bonf.)} & \textbf{Sig. FDR} \\
+\midrule
+Semi-arid--Highlands & 2012 & 0.020 & 0.323 & $2.27\times10^{-8}$ & $5.45\times10^{-7}$ & \checkmark \\
+Highlands--Canyons   & 2021 & 0.010 & 0.253 & $2.45\times10^{-3}$ & $5.89\times10^{-2}$ & \checkmark \\
+Semi-arid--Highlands & 2021 & 0.313 & 0.091 & $8.10\times10^{-3}$ & $1.94\times10^{-1}$ & \checkmark \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The three remaining pair-events with uncorrected $p<0.05$
+(Semi-arid--Canyons 2012, $p=0.025$; Highlands--Canyons 2011, $p=0.034$;
+Mountains--Canyons 2011, $p=0.036$) did not survive any correction and are
+reported as inconclusive trends, not as findings. The 1996 event did not
+produce significant changes in any region pair ($p>0.05$ across all five
+pairs evaluated).
+
+The two events documented as being of systemic/national scale within the
+period with sufficient data (2011--2012) are associated with a marked
+increase in synchronization in the geographically best-connected pair
+(Semi-arid--Highlands). The 2021 event, documented via grower testimony as
+regionally concentrated in Highlands municipalities (Sombrerete, Valparaíso,
+Río Grande), produced a divergent response across pairs: synchronization in
+Highlands--Canyons but desynchronization in Semi-arid--Highlands -- the pair
+that under normal conditions is the most strongly coupled
+(Section~\ref{sec:results-crp}).
+
+\begin{table}[H]
+\caption{Documented drought events used in the sliding-window analysis.}
+\label{tab:droughtevents}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\begin{tabularx}{\linewidth}{lXl}
+\toprule
+\textbf{Event} & \textbf{Documentation} & \textbf{Scale} \\
+\midrule
+1996 & Worst drought of the 1990s nationally; paralyzed agricultural exports; mass livestock sacrifice \cite{TVAztecaSequias} & Systemic/national \\
+2011 & Record affected area since satellite records began; 95.12\% of national territory affected, driven by La Ni\~na \cite{SMNsequia2026} & Systemic/national, continental \\
+2011--2012 & Worst drought in 70 years in Zacatecas; $\sim$13-month dry spell; $>$75,000 head of livestock lost \cite{Scielo2016Sequia,Scielo2018Sequia,AliatConexxion2012} & Zacatecas, systemic \\
+2021--2022 & $>$85\% of country critical (Apr. 2021); urban water crisis in northern states by 2022 \cite{SMNsequia2026} & Continental/national \\
+2021 & Critical ranching year in Sombrerete, Valparaíso, R\'io Grande (Highlands); direct grower testimony & Zacatecas, regionally concentrated \\
+2023--2024 & 76\% of national territory D0--D4; reservoirs at historic lows \cite{Informador2024Sequia,WikipediaEscasezHidrica,Ganaderia2024Sequia} & Systemic/national \\
+2023 & 50 of 58 Zacatecas municipalities in extreme drought (CONAGUA); not statistically testable, data ends Dec. 2024 & Zacatecas, systemic \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ================================================================
+\section{Discussion}
+\label{sec:discussion}
+[PENDING]
+
+% ================================================================
+\section{Conclusions}
+\label{sec:conclusions}
+[PENDING]
+
+% ================================================================
+% BACK MATTER -- MDPI requires these sections even if brief.
+% Fill in before submission.
+% ================================================================
+
+\vspace{6pt}
+\authorcontributions{[PENDING -- CRediT taxonomy statement.]}
+\funding{[PENDING]}
+\institutionalreview{Not applicable.}
+\informedconsent{Not applicable.}
+\dataavailability{The regional SPI-12 series and the complete analysis
+notebook are available at [\textbf{PENDING: GitHub repository URL}].}
+\acknowledgments{[PENDING]}
+\conflictsofinterest{The authors declare no conflict of interest.}
+
+%=================================================================
+% References -- Climate uses NUMBERED citation style (\cite), already
+% applied throughout this file. Re-verify against the current
+% instructions-for-authors page before submission, in case MDPI has
+% changed this journal's convention.
+%=================================================================
+\reftitle{References}
+\bibliography{references}
+
+\end{document}

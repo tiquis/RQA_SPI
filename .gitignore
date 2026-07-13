@@ -1,0 +1,26 @@
+# Data (not redistributed; point notebook to your own copy)
+*.csv
+*.xlsx
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# OS
+.DS_Store
+Thumbs.db
