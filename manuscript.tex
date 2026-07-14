@@ -96,22 +96,129 @@ Zacatecas; Mexico}
 \subsection{Study area and data}
 \label{sec:methods-data}
 
-The study area comprises the state of Zacatecas, north-central Mexico, partitioned
-into four physiographic regions (Semi-arid, Highlands, Mountains, Canyons) following
-the official regionalization established in the authors' related work on Multifractal
-Detrended Fluctuation Analysis (MF-DFA) of regional drought series
-\cite{MFDFAmanuscript}. This regionalization is based on 29--31 CONAGUA
-meteorological stations grouped by physiographic and hydroclimatic criteria, and was
-independently validated at the regional-aggregation level via bootstrap analysis of
-multifractal features in that companion study.
+The study area comprises the state of Zacatecas, north-central Mexico,
+partitioned into four physiographic regions (Semi-arid, Highlands,
+Mountains, Canyons) via hierarchical cluster analysis of station-level
+precipitation series (Section~\ref{sec:methods-regionalization}). This
+clustering-based regionalization is not an official administrative or
+hydrological classification; rather, it reflects a regionalization approach
+that has consistently aligned with the geographic and pluviometric regime of
+Zacatecas across the authors' body of work on regional SPI analysis and
+forecasting \cite{magallanes2019,magallanes2022,magallanes2023,magallanes2024a,magallanes2024b,magallanes2026forecasting,magallanes2026agrociencia}.
+Figure~\ref{fig:stationsmap} shows the spatial distribution of the
+stations by climatic region, illustrating how the cluster-based
+regionalization aligns with the state's pluviometric regime.
 
-The 12-month Standardized Precipitation Index (SPI-12) was computed for each region
-from monthly precipitation records spanning \textbf{December 1965 to December 2024
-(709 months)}. Station-level series were quality-controlled, gap-filled, and
-aggregated to the regional level using the same pipeline underlying the MF-DFA
-manuscript; full details of station selection, gamma-distribution fitting, and
-imputation are provided therein and are not repeated here. The four resulting
-regional SPI-12 series constitute the sole input to the analyses described below.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig1_stations_map.jpg}
+\caption{Meteorological stations used in this study, grouped by climatic region
+(Semi-arid, $n=8$; Highlands, $n=12$; Mountains, $n=3$; Canyons, $n=6$; $n=29$
+total, after excluding two transitional stations -- see
+Section~\ref{sec:methods-regionalization}) obtained via cluster analysis. Inset:
+location of the state of Zacatecas within Mexico.}
+\label{fig:stationsmap}
+\end{figure}
+
+\subsection{Standardized Precipitation Index}
+\label{sec:spi}
+
+The Standardized Precipitation Index (SPI) \cite{McKee1993} quantifies the
+deviation of observed precipitation from the long-term climatological
+distribution for a given accumulation period. Monthly precipitation
+accumulated over the timescale of interest was fitted to a two-parameter
+gamma distribution, whose probability density function is
+
+\begin{equation}
+g(x) = \frac{1}{\beta^{\alpha}\Gamma(\alpha)} x^{\alpha - 1} e^{-x/\beta},
+\qquad x > 0,
+\label{eq:gamma_pdf}
+\end{equation}
+
+where $\alpha > 0$ and $\beta > 0$ are the shape and scale parameters,
+respectively, and $\Gamma(\alpha)$ is the gamma function. The parameters
+were estimated via the maximum-likelihood approximation of McKee et al.
+\cite{McKee1993}:
+
+\begin{equation}
+\hat{\alpha} = \frac{1}{4A}\left(1 + \sqrt{1 + \frac{4A}{3}}\right),
+\qquad \hat{\beta} = \frac{\bar{x}}{\hat{\alpha}}, \qquad
+A = \ln(\bar{x}) - \frac{\sum \ln(x)}{n},
+\label{eq:gamma_params}
+\end{equation}
+
+where $\bar{x}$ is the sample mean of the precipitation accumulations and
+$n$ is the number of observations. Given $\hat{\alpha}$ and $\hat{\beta}$,
+the cumulative probability of an observed precipitation amount $x$ is
+$G(x) = \int_0^{x} g(x)\,dx$. Because monthly precipitation accumulations
+can include zero values with probability $q = m/n$ (where $m$ is the number
+of zero-precipitation observations), the actual cumulative probability of
+non-exceedance is $H(x) = q + (1 - q)\,G(x)$, which is transformed into the
+standard normal variate
+
+\begin{equation}
+\mathrm{SPI} = \Phi^{-1}\!\left(H(x)\right),
+\label{eq:spi_final}
+\end{equation}
+
+where $\Phi^{-1}(\cdot)$ is the inverse standard normal cumulative
+distribution function (the probit function). Negative SPI values indicate
+drier-than-average conditions and positive values indicate wetter-than-average
+conditions. This study uses SPI-12 (the 12-month accumulation, associated
+with drought conditions relevant to aquifer recharge and groundwater
+levels), computed in \texttt{Python} using a custom implementation of
+Equations~\eqref{eq:gamma_pdf}--\eqref{eq:spi_final}, consistent with the
+procedure implemented in the widely used \texttt{SPEI} R package
+\cite{BegueriaVicenteSerrano2014}.
+
+\subsection{Regionalization}
+\label{sec:methods-regionalization}
+
+The 12-month Standardized Precipitation Index (SPI-12; see
+Section~\ref{sec:spi})
+was computed for each of the 31 stations from the cleaned and imputed
+precipitation series. Stations were then grouped into climatically
+homogeneous regions by hierarchical cluster analysis (Ward's minimum
+variance method, Euclidean distance), computed using the
+\texttt{scipy.cluster.hierarchy} and \texttt{scipy.spatial.distance} modules
+\cite{Virtanen2020}, applied to the 31 standardized SPI-12 series. The
+resulting four-cluster solution was evaluated against the independent
+regional classification of \cite{magallanes2019} and against
+the geographic and climatological expertise of the authors regarding the
+study area. Two stations, Chalchihuites and Concepci\'on del Oro, were
+excluded from the final regionalization: both occupied geographically
+transitional or ambiguous positions (Chalchihuites lies in a transition zone
+toward the Sierra Madre Occidental, and Concepci\'on del Oro is centrally
+located within the semi-arid plateau) that resulted in cluster assignments
+inconsistent with the well-documented climatology of the region, and, in the
+case of Concepci\'on del Oro, with \cite{magallanes2019}.
+Excluding these two stations preserved the cluster membership of the
+remaining 29 stations. The final regionalization comprised 8 stations in the
+Semi-arid region, 12 in Highlands, 3 in Mountains, and 6 in Canyons, with
+mean annual precipitation increasing monotonically across regions (409, 464,
+538, and 732~mm, respectively), consistent with the expected precipitation
+gradient from the semi-arid plateau toward the more humid canyon and
+mountain zones of the state. The resulting dendrogram was rendered as a
+circular (fan-type) layout using the \texttt{dendrofan} Python package
+\cite{MagallanesQuintanar2026Dendrofan}, developed by the authors and
+inspired by the visual convention commonly used for hierarchical trees in
+the \texttt{ape} R package \cite{Paradis2019}; the clustering computation
+itself was performed entirely in \texttt{Python}, using \texttt{SciPy}, as
+described above.
+
+The regional SPI-12 series were computed as the arithmetic mean, at each
+month, of the station-level SPI-12 values belonging to each region. Because
+the 12-month accumulation window requires 11 preceding months of data, the
+resulting regional SPI-12 series span 709 months, from December 1965 to
+December 2024.
+
+Station-level precipitation series were quality-controlled, gap-filled, and used to
+compute the regional SPI-12 series following the regionalization procedure detailed
+in Section~\ref{sec:methods-regionalization}; full details of station-level
+gamma-distribution fitting and imputation are provided in the companion MF-DFA
+manuscript and are not repeated here. The four resulting regional SPI-12 series
+(709 months, December 1965--December 2024) constitute the sole input to the
+analyses described below.
 
 \subsection{Phase-space reconstruction and embedding parameter selection}
 \label{sec:methods-embedding}
@@ -276,11 +383,22 @@ step (embedding, threshold calibration, Theiler-window exclusion, and
 line-length extraction). The complete notebook, including the data-loading,
 verification, and all diagnostic checks described in
 Section~\ref{sec:results}, is provided as supplementary material and archived
-on GitHub [\textbf{PENDING: repository URL / DOI}].
+on GitHub (\url{https://github.com/tiquis/RQA_SPI}).
 
 % ================================================================
 \section{Results}
 \label{sec:results}
+
+Figure~\ref{fig:spi12series} shows the four regional SPI-12 series analyzed
+throughout this study.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig2_regional_spi12_series.png}
+\caption{Regional SPI-12 series for Zacatecas (709 months, December
+1965--December 2024).}
+\label{fig:spi12series}
+\end{figure}
 
 \subsection{Embedding parameter selection}
 \label{sec:results-embedding}
@@ -318,7 +436,17 @@ With the recurrence threshold fixed to achieve a constant recurrence rate
 (RR$\approx$0.05) across the four regions, and after excluding a Theiler
 window of width $W=\tau$ (per region) around the main diagonal to remove
 trivial autocorrelation-driven recurrence \cite{Theiler1986,Marwan2007},
+recurrence plots were constructed for each region (Figure~\ref{fig:rps}) and
 standard RQA measures were computed (Table~\ref{tab:rqa}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig3_recurrence_plots.png}
+\caption{Theiler-corrected recurrence plots for the four regions, with
+embedding parameters ($\tau$, $m$) and Theiler window width ($W$) indicated
+per panel.}
+\label{fig:rps}
+\end{figure}
 
 \begin{table}[H]
 \caption{RQA measures per region (Theiler-corrected).}
@@ -362,7 +490,17 @@ episodes -- July 1985--March 1987 and March 2002--November 2003, offset by
 direct Pearson correlation between the two segments (aligned by relative
 month) confirms a moderate-to-strong positive relationship ($r=0.53$),
 consistent with genuine recurrence between two similar wet regimes rather
-than a methodological artifact.
+than a methodological artifact (Figure~\ref{fig:lmaxdiag}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/fig5_lmax_diagnostic_mountains.png}
+\caption{Mountains region: the two temporally distant segments (Segment A,
+1985--1987; Segment B, 2002--2003) forming the longest diagonal line
+(Lmax = 21 months) in the Theiler-corrected recurrence plot, aligned by
+relative month since segment start.}
+\label{fig:lmaxdiag}
+\end{figure}
 
 \subsection{Synchronization between regions (Cross-Recurrence)}
 \label{sec:results-crp}
@@ -389,11 +527,23 @@ Semi-arid -- Canyons   & 0.287 \\
 \end{tabularx}
 \end{table}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{figures/fig4_frecurrence_heatmap.png}
+\caption{Heatmap of pairwise F-recurrence (synchronization) between regions.
+Diagonal cells (self-synchronization, $F=1$ by definition) are marked
+``diag''.}
+\label{fig:fheatmap}
+\end{figure}
+
 Semi-arid and Highlands constitute, by a clear margin, the most synchronized
 pair -- consistent with their geographic contiguity in the inter-range basin
 between the Sierra Madre Oriental and Occidental. Semi-arid and Canyons
 constitute the least synchronized pair, consistent with distinct orographic
-precipitation regimes between the two regions.
+precipitation regimes between the two regions. The heatmap in
+Figure~\ref{fig:fheatmap} summarizes this pattern, showing a clear gradient
+of decreasing synchronization from geographically contiguous to more
+distant/orographically distinct region pairs.
 
 \subsection{Synchronization before/after documented drought events}
 \label{sec:results-sliding}
@@ -458,7 +608,173 @@ that under normal conditions is the most strongly coupled
 % ================================================================
 \section{Discussion}
 \label{sec:discussion}
-[PENDING]
+
+\subsection{Regional Persistence and the Precipitation Gradient}
+\label{sec:disc-persistence}
+
+Canyons consistently showed the highest values across all diagonal- and
+vertical-line RQA measures (DET, L, Lmax, ENTR, LAM, TT; Section
+\ref{sec:results-rqa}), and this ranking did not change after the
+Theiler-window correction was applied, indicating that it is a genuine
+feature of the regional dynamics rather than an artifact of the near-diagonal
+band. This finding is broadly consistent with the precipitation gradient
+reported in Section~\ref{sec:methods-regionalization}: mean annual
+precipitation increases monotonically from Semi-arid (409~mm) to Highlands
+(464~mm), Mountains (538~mm), and Canyons (732~mm). A plausible explanation
+is that regions with stronger, more topographically anchored orographic
+forcing -- such as Canyons -- experience a more regular seasonal
+precipitation cycle, which may translate into more laminar, self-similar
+SPI-12 trajectories (higher LAM and TT); by contrast, Semi-arid, dominated by
+more sporadic convective precipitation over open plains, may be more
+susceptible to short, less regular excursions that reduce apparent
+persistence. This interpretation remains a hypothesis rather than an
+established mechanism, and it should be noted that the absolute differences
+between regions were modest (e.g., LAM ranged only from 0.849 to 0.864),
+consistent with all four regions sharing common synoptic-scale climatic
+forcings despite their differing local topography.
+
+This finding can also be considered alongside two related analyses conducted by the
+authors on the same four regions. A multifractal detrended fluctuation analysis (MF-DFA)
+of the same regional SPI-12 series, currently unpublished, found that Canyons exhibited
+the smallest degree of multifractality among the four regions, while Semi-arid exhibited
+the largest -- broadly consistent with the comparatively higher RQA-based persistence
+(LAM, TT) found for Canyons here, insofar as both measures point toward more regular,
+less heterogeneous short-term dynamics in that region relative to Semi-arid. Separately,
+a progression of published forecasting studies by the authors, applying NARX networks
+\cite{magallanes2022}, an N-HiTS/LSTM comparison \cite{magallanes2024a}, and an
+AutoML approach \cite{magallanes2024b} to the same four regions, found that Canyons
+was, in apparent contrast, among the most difficult regions to forecast at short-to-medium
+horizons in two of these three studies: the lowest test-period correlation of the four
+regions in \cite{magallanes2022} ($R=0.844$, versus 0.953 for Semi-arid) and in
+\cite{magallanes2024b} ($R=0.933$, versus 0.964 for Highlands), accompanied in both
+studies by the strongest under-prediction bias among the four regions (58.6\% and 62\%
+probability of under-prediction, respectively). A related, currently unpublished analysis
+comparing Transformer-based architectures across the same four regions similarly found
+Canyons to have the weakest predictive-interval calibration of the four regions, though
+with the largest, statistically confirmed benefit from incorporating a macroclimatic
+covariate. Taken together, these complementary characterizations suggest that the
+regularity of Canyons captured by standard persistence and multifractal measures does
+not consistently translate into short-horizon predictability, plausibly because its dynamics
+are shaped by comparatively rare but large-magnitude regime transitions -- consistent with
+the pronounced swings between severe drought and rapid recovery visible in its regional
+SPI-12 series (Figure~\ref{fig:spi12series}) -- rather than by the more frequent,
+moderate-magnitude fluctuations that standard forecasting metrics are most sensitive to.
+This apparent dissociation between long-term regularity and short-term predictability is,
+to the authors' knowledge, not yet formally established, and constitutes a natural
+direction for future work relating RQA-based persistence measures directly to forecast
+error.
+
+\subsection{Geographic Basis of Inter-Regional Synchronization}
+\label{sec:disc-sync}
+
+Semi-arid and Highlands were, by a clear margin, the most synchronized pair
+(F = 0.639; Section~\ref{sec:results-crp}), whereas Semi-arid and Canyons
+were the least synchronized (F = 0.287). This pattern is consistent with the
+physical geography of the state: Semi-arid and Highlands occupy a shared
+inter-range basin between the Sierra Madre Oriental and the Sierra Madre
+Occidental, and are therefore likely to be exposed to similar large-scale
+moisture-transport pathways and topographic sheltering, whereas Canyons sits
+in a distinct orographic setting more conducive to localized convective
+precipitation. The use of a cross-recurrence-based synchronization measure to
+detect such spatial coherence follows the general approach of
+\cite{Semeraro2020}, who used the analogous F-recurrence measure to assess
+synchronization between vegetation-index time series in a different
+ecological context. The gradient of decreasing synchronization observed here
+-- from geographically contiguous to more topographically distinct region
+pairs (Figure~\ref{fig:fheatmap}) -- suggests that RQA-based synchronization
+measures may be sensitive to sub-state hydroclimatic structure that is not
+captured by regional aggregation alone.
+
+\subsection{Systemic versus Regionally Concentrated Drought Signatures}
+\label{sec:disc-events}
+
+The sliding-window analysis (Section~\ref{sec:results-sliding}) identified
+three region pair-events for which the change in synchronization survived
+correction for multiple comparisons: an increase in Semi-arid--Highlands
+synchronization around the 2011--2012 drought, and both an increase in
+Highlands--Canyons synchronization and a decrease in Semi-arid--Highlands
+synchronization around the 2021 drought. These two episodes were not
+expected, a priori, to produce the same signature: 2011--2012 is documented
+as a systemic, near-nationwide event, whereas 2021 is documented via direct
+grower testimony as concentrated in Highlands municipalities. The observed
+contrast -- convergence of an already well-coupled pair under a systemic
+event, versus a divergent, pair-dependent response under a regionally
+concentrated event -- is consistent with the general expectation that the
+spatial reach of a climatic anomaly, and not only its severity, shapes its
+synchronization signature. A broadly similar principle was reported by
+\cite{Semeraro2020}, who found that a large-scale ENSO event produced a
+temporary disruption in vegetation-index synchronization in the Amazon,
+whereas the comparably large-scale AMO did not, implying that not all
+large-scale climatic anomalies leave the same imprint on local
+synchronization structure. It should be emphasized that only 3 of 24 tests
+survived correction, and that this pattern is therefore best regarded as
+hypothesis-generating rather than conclusive; the 2023 drought, independently
+documented as one of the most severe in the study period, could not be
+evaluated within the current windowing scheme because the series ends in
+December 2024, and represents a natural candidate for confirming or
+revising this interpretation once additional post-event data become
+available.
+
+\subsection{Methodological Considerations}
+\label{sec:disc-methods}
+
+Two methodological findings of this study are likely to generalize beyond
+the present case. First, the Theiler-window correction
+(Section~\ref{sec:results-rqa}) was not a minor refinement: uncorrected Lmax
+values were inflated by up to an order of magnitude, driven by trivial
+autocorrelation between adjacent months rather than genuine recurrence. This
+is expected whenever RQA is applied to a moving-average index such as
+SPI-12, and, consistent with the original recommendation of
+\cite{Theiler1986} and its treatment in \cite{Marwan2007}, should be treated
+as a required step -- rather than an optional one -- in future applications
+of RQA to smoothed hydroclimatic series at any accumulation timescale.
+Second, the embedding parameters appropriate for the full 709-month series
+proved entirely unsuitable for the 12--36-month windows used in the
+sliding-window analysis, since $(m-1)\tau$ alone could consume most or all
+of a short window. This scale-dependence of embedding parameters is a
+general property of phase-space reconstruction and, in the specific context
+of short-window drought-event analysis, implies that a separate, minimal
+embedding is generally necessary rather than a simplification adopted for
+convenience.
+
+\subsection{Limitations}
+\label{sec:disc-limitations}
+
+Several limitations should be considered when interpreting these results.
+First, the four-region classification, although grounded in a
+cluster-analysis approach that has repeatedly aligned with the geographic
+and pluviometric regime of Zacatecas across the authors' prior work
+\cite{magallanes2019,magallanes2022,magallanes2023,magallanes2024a,magallanes2024b,magallanes2026forecasting,magallanes2026agrociencia},
+is a data-driven regionalization rather than an official administrative or
+hydrological one, and alternative regionalizations might reveal different
+synchronization structure. Second, a related, currently unpublished analysis
+by the authors, comparing deep-learning forecasting configurations across
+the same four regions, found that Semi-arid was the only region whose
+station network did not meet a strict multi-variable completeness
+criterion, requiring a more flexible station-matching scheme due to
+instrumentation gaps; this same region also showed the lowest RQA-based
+persistence (DET, LAM, TT) in the present study. It is therefore possible
+that part of the regional differentiation reported here reflects
+heterogeneity in station-network density or completeness across regions,
+rather than climatic differences alone, and this potential confound cannot
+be fully disentangled with the present data. Third, the sliding-window
+synchronization
+analysis (Section~\ref{sec:methods-sliding}) used a minimal, fixed embedding
+distinct from the one used for the full-series RQA measures; the two
+therefore capture related but not strictly comparable aspects of the
+system's dynamics, and this distinction should be kept in mind when relating
+findings across Sections~\ref{sec:results-rqa} and
+\ref{sec:results-sliding}. Fourth, the 2023 drought event could not be
+statistically evaluated because the series ends in December 2024, leaving
+the most recent, and independently documented as one of the most severe,
+episode in the study period outside the scope of formal testing. Finally,
+SPI-12 captures meteorological drought as reflected in precipitation
+anomalies but does not directly represent soil moisture, agricultural
+impact, or water-management outcomes; where available, the qualitative
+consistency between the statistical findings and independently documented
+regional impacts (Table~\ref{tab:droughtevents}) provides some
+triangulation, but a more formal joint analysis with impact-based drought
+indicators remains a direction for future work.
 
 % ================================================================
 \section{Conclusions}
@@ -475,8 +791,15 @@ that under normal conditions is the most strongly coupled
 \funding{[PENDING]}
 \institutionalreview{Not applicable.}
 \informedconsent{Not applicable.}
-\dataavailability{The regional SPI-12 series and the complete analysis
-notebook are available at [\textbf{PENDING: GitHub repository URL}].}
+\dataavailability{The raw precipitation data used to compute the regional SPI-12
+series are part of the ``Proyecto de bases de datos climatológicos,'' maintained by
+the Comisión Nacional del Agua (CONAGUA), the official Mexican institution
+responsible for climatic and meteorological data record-keeping, and are publicly
+available at
+\url{https://smn.conagua.gob.mx/es/climatologia/informacion-climatologica/informacion-estadistica-climatologica}.
+The complete analysis code, including the data-loading, verification, and all
+diagnostic checks described in Section~\ref{sec:results}, is openly available at
+\url{https://github.com/tiquis/RQA_SPI}.}
 \acknowledgments{[PENDING]}
 \conflictsofinterest{The authors declare no conflict of interest.}
 
